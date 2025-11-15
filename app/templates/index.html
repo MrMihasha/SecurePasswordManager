@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Secure Password Manager{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1 class="display-5 fw-bold">
+            <i class="bi bi-shield-check text-primary"></i>
+            Your Password Vault
+        </h1>
+        <p class="lead text-muted">Manage your credentials securely</p>
+    </div>
+    <div class="col-md-4 text-md-end">
+        <a href="{{ url_for('main.add_password') }}" class="btn btn-primary btn-lg">
+            <i class="bi bi-plus-circle me-2"></i>Add Password
+        </a>
+    </div>
+</div>
+
+<!-- Search Bar -->
+<div class="row mb-4">
+    <div class="col-md-8 mx-auto">
+        <form action="{{ url_for('main.search') }}" method="GET" class="input-group input-group-lg">
+            <span class="input-group-text bg-white">
+                <i class="bi bi-search"></i>
+            </span>
+            <input type="text" name="q" class="form-control" placeholder="Search your passwords..." required>
+            <button class="btn btn-outline-primary" type="submit">Search</button>
+        </form>
+    </div>
+</div>
+
+<!-- Statistics -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <i class="bi bi-key-fill text-primary" style="font-size: 2rem;"></i>
+                <h3 class="mt-2 mb-0">{{ passwords|length }}</h3>
+                <p class="text-muted mb-0">Stored Passwords</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <i class="bi bi-shield-fill-check text-success" style="font-size: 2rem;"></i>
+                <h3 class="mt-2 mb-0">AES-256</h3>
+                <p class="text-muted mb-0">Encryption</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <i class="bi bi-person-check-fill text-info" style="font-size: 2rem;"></i>
+                <h3 class="mt-2 mb-0">{{ current_user.username }}</h3>
+                <p class="text-muted mb-0">Active User</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Password List -->
+{% if passwords %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-list-ul me-2"></i>Your Passwords
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4">Service</th>
+                                    <th>Username</th>
+                                    <th>Website</th>
+                                    <th>Updated</th>
+                                    <th class="text-end pe-4">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for password in passwords %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle bg-primary text-white me-3">
+                                                {{ password.name[0]|upper }}
+                                            </div>
+                                            <strong>{{ password.name }}</strong>
+                                        </div>
+                                    </td>
+                                    <td class="text-muted">{{ password.username }}</td>
+                                    <td>
+                                        {% if password.url %}
+                                            <a href="{{ password.url }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
+                                                <i class="bi bi-link-45deg"></i> Link
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-muted">
+                                        <small>{{ password.updated_at.strftime('%Y-%m-%d') }}</small>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{{ url_for('main.view_password', id=password.id) }}" 
+                                               class="btn btn-outline-primary" title="View">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('main.edit_password', id=password.id) }}" 
+                                               class="btn btn-outline-secondary" title="Edit">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a href="{{ url_for('main.delete_password', id=password.id) }}" 
+                                               class="btn btn-outline-danger" title="Delete">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card border-0 shadow-sm text-center py-5">
+                <div class="card-body">
+                    <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
+                    <h3 class="mt-3">No Passwords Yet</h3>
+                    <p class="text-muted mb-4">Start securing your credentials by adding your first password</p>
+                    <a href="{{ url_for('main.add_password') }}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-plus-circle me-2"></i>Add Your First Password
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

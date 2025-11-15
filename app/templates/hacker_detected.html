@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+
+{% block title %}{{ response.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+        20%, 40%, 60%, 80% { transform: translateX(10px); }
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    .hacker-detected {
+        animation: shake 0.5s;
+        animation-iteration-count: 1;
+    }
+    
+    .warning-icon {
+        animation: pulse 2s infinite;
+        font-size: 5rem;
+    }
+    
+    .matrix-bg {
+        background: linear-gradient(to bottom, #000000, #001a00);
+        color: #00ff00;
+    }
+    
+    .glitch {
+        text-shadow: 2px 2px #ff00de, -2px -2px #00fff9;
+    }
+    
+    .console {
+        background: #1a1a1a;
+        border: 2px solid #00ff00;
+        border-radius: 10px;
+        padding: 20px;
+        font-family: 'Courier New', monospace;
+        color: #00ff00;
+        box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+    }
+    
+    .blink {
+        animation: blink 1s infinite;
+    }
+    
+    @keyframes blink {
+        0%, 50% { opacity: 1; }
+        51%, 100% { opacity: 0; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Main Alert Card -->
+            <div class="card shadow-lg border-danger hacker-detected mb-4">
+                <div class="card-header bg-danger text-white py-4 text-center">
+                    <div class="warning-icon">
+                        {% if attack_type == 'xss' %}
+                            🚨
+                        {% elif attack_type == 'sqli' %}
+                            💉
+                        {% elif attack_type == 'path_traversal' %}
+                            📁
+                        {% elif attack_type == 'command_injection' %}
+                            ⚡
+                        {% elif attack_type == 'easter_egg' %}
+                            🎉
+                        {% else %}
+                            🤔
+                        {% endif %}
+                    </div>
+                    <h1 class="display-4 fw-bold mb-0 glitch">{{ response.title }}</h1>
+                </div>
+                <div class="card-body p-5">
+                    <!-- Main Message -->
+                    <div class="alert alert-warning text-center mb-4" role="alert">
+                        <h3 class="mb-3">{{ response.message }}</h3>
+                        <p class="mb-0 text-muted">
+                            <strong>What you tried:</strong> <code class="text-danger">{{ payload }}</code>
+                        </p>
+                    </div>
+
+                    <!-- Console Output Style -->
+                    <div class="console mb-4">
+                        <div class="mb-2">
+                            <span class="text-success">root@securepass:~$</span> 
+                            <span class="text-warning">./detect_threats.sh</span>
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-info">[INFO]</span> Analyzing input: "{{ payload[:50] }}..."
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-danger">[ALERT]</span> {{ attack_type.upper() }} pattern detected!
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-success">[BLOCKED]</span> Attack neutralized by input validation
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-info">[LOGGED]</span> Event recorded at {{ timestamp }}
+                        </div>
+                        <div>
+                            <span class="text-success">root@securepass:~$</span> <span class="blink">_</span>
+                        </div>
+                    </div>
+
+                    <!-- Educational Tips -->
+                    {% if response.tips %}
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="text-primary mb-3">
+                                <i class="bi bi-lightbulb-fill"></i> Why This Didn't Work:
+                            </h5>
+                            <ul class="list-group">
+                                {% for tip in response.tips %}
+                                <li class="list-group-item">
+                                    <i class="bi bi-shield-check text-success me-2"></i>
+                                    {{ tip }}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Easter Egg Reference -->
+                    {% if response.reference %}
+                    <div class="alert alert-info">
+                        <i class="bi bi-book me-2"></i>
+                        <strong>Reference:</strong> 
+                        <a href="{{ response.reference }}" target="_blank" rel="noopener noreferrer">
+                            {{ response.reference }}
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    <!-- Hacker Stats -->
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="card bg-dark text-white">
+                                <div class="card-body text-center">
+                                    <h3 class="display-4">{{ hacker_attempts }}</h3>
+                                    <p class="mb-0">Hacking Attempts This Session</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body text-center">
+                                    <h5 class="display-4">Your Hacker Rank:</h5>
+                                    <h4 class="mb-0">{{ hacker_rank }}</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Funny Security Fact -->
+                    <div class="alert alert-light mt-4 border">
+                        <h6 class="text-primary mb-2">
+                            <i class="bi bi-star-fill"></i> Random Security Fact:
+                        </h6>
+                        <p class="mb-0">{{ funny_fact }}</p>
+                    </div>
+
+                    <!-- Meme/GIF Placeholder -->
+                    <div class="text-center my-4">
+                        <div class="card border-0 shadow">
+                            <div class="card-body p-4">
+                                <div style="font-size: 8rem; line-height: 1;">
+                                    {% if attack_type == 'xss' %}
+                                        🙅‍♂️ ⛔ &lt;script&gt; 🚫
+                                    {% elif attack_type == 'sqli' %}
+                                        💊 💉 🗄️ ❌
+                                    {% elif attack_type == 'easter_egg' %}
+                                        🎊 🎉 🥳 🎈
+                                    {% else %}
+                                        🤷‍♂️ 🛡️ 😎 ✅
+                                    {% endif %}
+                                </div>
+                                <p class="text-muted mt-3 mb-0">
+                                    <small>No actual image needed - emojis are better for accessibility! 😄</small>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="text-center mt-4">
+                        <a href="{{ url_for('main.index') }}" class="btn btn-primary btn-lg me-2">
+                            <i class="bi bi-house-door me-2"></i>Back to Safety
+                        </a>
+                        <a href="{{ url_for('main.search') }}" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-search me-2"></i>Try a Legitimate Search
+                        </a>
+                    </div>
+
+                    <!-- Disclaimer -->
+                    <div class="alert alert-success mt-4 mb-0">
+                        <h6 class="mb-2">
+                            <i class="bi bi-shield-check me-2"></i>
+                            Don't worry, no harm done!
+                        </h6>
+                        <p class="mb-0 small">
+                            This is just a friendly educational response. Your input was safely validated and escaped before processing. 
+                            The application is secure and your attempt was logged for demonstration purposes only. 
+                            Keep learning about security - it's awesome! 🚀
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Info Card -->
+            <div class="card border-info">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle me-2"></i>
+                        About This Security Feature
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">
+                        <strong>This application implements multiple layers of security:</strong>
+                    </p>
+                    <ul class="mb-0">
+                        <li><strong>Input Validation:</strong> All user input is validated before processing</li>
+                        <li><strong>Output Escaping:</strong> Jinja2 automatically escapes HTML/JavaScript</li>
+                        <li><strong>Parameterized Queries:</strong> SQLAlchemy ORM prevents SQL injection</li>
+                        <li><strong>CSRF Tokens:</strong> Protect against cross-site request forgery</li>
+                        <li><strong>Rate Limiting:</strong> Prevents brute force and spam attacks</li>
+                        <li><strong>Content Security Policy:</strong> Blocks malicious scripts</li>
+                        <li><strong>And More:</strong> Session security, encryption, access control, etc.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Confetti effect for easter eggs
+{% if attack_type == 'easter_egg' %}
+document.addEventListener('DOMContentLoaded', function() {
+    // Simple confetti effect
+    for (let i = 0; i < 50; i++) {
+        createConfetti();
+    }
+});
+
+function createConfetti() {
+    const confetti = document.createElement('div');
+    confetti.style.position = 'fixed';
+    confetti.style.left = Math.random() * 100 + '%';
+    confetti.style.top = '-10px';
+    confetti.style.fontSize = '2rem';
+    confetti.innerHTML = ['🎉', '🎊', '✨', '🌟', '⭐'][Math.floor(Math.random() * 5)];
+    confetti.style.zIndex = '9999';
+    confetti.style.pointerEvents = 'none';
+    document.body.appendChild(confetti);
+    
+    const fallDuration = 3000 + Math.random() * 2000;
+    const animation = confetti.animate([
+        { transform: 'translateY(0) rotate(0deg)', opacity: 1 },
+        { transform: `translateY(${window.innerHeight + 100}px) rotate(${Math.random() * 720}deg)`, opacity: 0 }
+    ], {
+        duration: fallDuration,
+        easing: 'linear'
+    });
+    
+    animation.onfinish = () => confetti.remove();
+}
+{% endif %}
+</script>
+{% endblock %}
